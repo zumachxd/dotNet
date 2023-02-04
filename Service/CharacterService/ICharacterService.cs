@@ -2,10 +2,14 @@ namespace dotNet.Service.CharacterService
 {
   public interface ICharacterService
     {
-      Task<List<Character>> GetAllCharacter();
+      Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacter();
 
-      Task<Character> GetCharacterById(int id);
+      Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id);
 
-      Task<List<Character>> AddCharacter(Character newCharacter);
+      Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter);
+
+      Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter);
+
+      Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id);
     }
 }
