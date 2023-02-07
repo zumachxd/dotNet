@@ -10,13 +10,35 @@ namespace dotNet.Data
     
         
     }
-    public Task<ServiceResponse<string>> Login(string user, string password)
+    public async Task<ServiceResponse<string>> Login(string username, string password)
     {
-      throw new NotImplementedException();
-    }
+      var response = new ServiceResponse<string>();
+      var user = await _context.Users
+      .FirstOrDefaultAsync(u => u.UserName.ToLower().Equals(username.ToLower()));
+      if (user == null)
+      {
+        response.Success = false;
+        response.Message = "Verify your credentials";
+      }
+      else if (!PasswordVerify(password, user.PasswordHash, user.PasswordSalt))
+      {
+        response.Success = false;
+        response.Message = "Verify your credentials";
+      }
+      else {
+        response.Data = user.id.ToString();
+      }
+      return response;
+  }
 
     public async Task<ServiceResponse<int>> Register(User user, string password)
     {
+      var response = new ServiceResponse<int>();
+      if(await UserExists(user.UserName))
+      {
+        response.Success = false;
+        response.Message = $"User ${user.UserName} already exists";
+      }
         CreatPasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
         user.PasswordHash = passwordHash;
@@ -24,14 +46,17 @@ namespace dotNet.Data
 
       _context.Users.Add(user);
       await _context.SaveChangesAsync();
-      var response = new ServiceResponse<int>();
       response.Data = user.id;
       return response;
     }
 
-    public Task<bool> UserExists(string username)
+    public async Task<bool> UserExists(string username)
     {
-      throw new NotImplementedException();
+     if(await _context.Users.AnyAsync(u => u.UserName.ToLower() == username.ToLower()))
+     {
+       return true;
+     }
+     return false;
     }
 
     private void CreatPasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -40,6 +65,15 @@ namespace dotNet.Data
         {
             passwordHash = hamc.Key;
             passwordSalt = hamc.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+        }
+    }
+
+    private bool PasswordVerify(string password, byte[] passwordHash, byte[] passwordSalt)
+    {
+        using(var hamc = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+        {
+          var computeHash = hamc.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+          return computeHash.SequenceEqual(passwordHash);
         }
     }
   }
