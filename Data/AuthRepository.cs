@@ -1,11 +1,17 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+
 namespace dotNet.Data
 {
   public class AuthRepository : IAuthRepository
   {
     private readonly DataContext _context;
+    private readonly IConfiguration _configuration;
    
-    public AuthRepository(DataContext context)
+    public AuthRepository(DataContext context, IConfiguration configuration)
     {
+      _configuration = configuration;
       _context = context;
     
         
@@ -26,7 +32,7 @@ namespace dotNet.Data
         response.Message = "Verify your credentials";
       }
       else {
-        response.Data = user.id.ToString();
+        response.Data = CreatToken(user);
       }
       return response;
   }
@@ -75,6 +81,36 @@ namespace dotNet.Data
           var computeHash = hamc.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
           return computeHash.SequenceEqual(passwordHash);
         }
+    }
+
+    private string CreatToken(User user)
+    {
+      var claims = new List<Claim>
+      {
+        new Claim(ClaimTypes.NameIdentifier, user.id.ToString()),
+        new Claim(ClaimTypes.Name, user.UserName)
+      };
+
+      var appsSettingsToken = _configuration.GetSection("AppSettings:Token").Value;
+      if(appsSettingsToken is null)
+       throw new Exception("AppSettings token id null");
+      
+      SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8
+      .GetBytes(appsSettingsToken));
+
+      SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+      var tokenDecriptor = new SecurityTokenDescriptor
+      {
+        Subject = new ClaimsIdentity(claims),
+        Expires = DateTime.Now.AddDays(1),
+        SigningCredentials = creds
+      };
+
+      JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+      SecurityToken token = tokenHandler.CreateToken(tokenDecriptor);
+
+      return tokenHandler.WriteToken(token);
     }
   }
 
