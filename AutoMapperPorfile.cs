@@ -1,3 +1,5 @@
+using dotNet.Dtos.Weapon;
+
 namespace dotNet
 {
   public class AutoMapperPorfile : Profile
@@ -6,6 +8,8 @@ namespace dotNet
         {
             CreateMap<Character,GetCharacterDto>();
             CreateMap<AddCharacterDto, Character>();
+            CreateMap<Weapon, GetWeaponDto>();
+            CreateMap<Skill, GetSkillDto>();
         }
     }
 }

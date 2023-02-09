@@ -54,6 +54,13 @@ namespace dotNet.Controllers
           }
           return Ok(response);
         }
+
+        [HttpPost("skill")]
+
+        public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> AddCharacterSkill(AddCharacterSkillDto newCharacterSkill)
+        {
+          return Ok( await _characterService.AddCharacterSkill(newCharacterSkill));
+        }
         
     }
 }

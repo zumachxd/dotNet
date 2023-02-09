@@ -4,8 +4,12 @@ namespace dotNet.Data
     {
          protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseSerialColumns();
-
+        modelBuilder.Entity<Skill>().HasData(
+            new Skill { Id = 1, Name = "Fire Bolt", Damage = 30 },
+            new Skill { Id = 2, Name = "Frenzy", Damage = 20 },
+            new Skill { Id = 3, Name = "Blizzard", Damage = 30 },
+            new Skill { Id = 4, Name = "Holy Strike", Damage = 25 }
+        );
     }
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -14,7 +18,9 @@ namespace dotNet.Data
         public DbSet<Character> Characters => Set<Character>();
 
         public DbSet<User> Users => Set<User>();
-        
+
+        public DbSet<Weapon> Weapons => Set<Weapon>();
+        public DbSet<Skill> Skills => Set<Skill>(); 
             
     }
 }
