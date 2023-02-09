@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using dotNet.Data;
 
 namespace dotNet.Service.CharacterService
@@ -8,12 +9,17 @@ namespace dotNet.Service.CharacterService
 
     private readonly IMapper _mapper;
     private readonly DataContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CharacterService(IMapper mapper, DataContext context)
+    public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
     {
+      _httpContextAccessor = httpContextAccessor;
       _context = context;
       _mapper = mapper;
     }
+
+    private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User
+        .FindFirstValue(ClaimTypes.NameIdentifier)!);
     public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
     {
       var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
@@ -21,7 +27,9 @@ namespace dotNet.Service.CharacterService
         _context.Characters.Add(character);
         await _context.SaveChangesAsync();
         serviceResponse.Data =
-         await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+         await _context.Characters
+          .Where(c => c.User!.id == GetUserId())
+         .Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
         return serviceResponse;
 
     }
@@ -51,7 +59,7 @@ throw new Exception($"Charater with id {id} is not found");
     public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacter()
     {
       var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-      var DbContext = await _context.Characters.ToListAsync();
+      var DbContext = await _context.Characters.Where(c => c.User!.id == GetUserId()).ToListAsync();
       serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
       return serviceResponse;
     }
