@@ -10,12 +10,12 @@ namespace dotNet.Dto.Character
        public int Strength { get; set; } = 10;
        public int Defense { get; set; } = 10;
        public int Inteligence { get; set; } = 10;
-
        public RpgClass Class { get; set; } = RpgClass.Knight;
-
        public GetWeaponDto? Weapon { get; set; }
-
        public List<GetSkillDto>? Skills { get; set; }
+       public int Figths { get; set; }
+       public int Victories { get; set; }
+       public int Defeats { get; set; }
 
     }
 }
